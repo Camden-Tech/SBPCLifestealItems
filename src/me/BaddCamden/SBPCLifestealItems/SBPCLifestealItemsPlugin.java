@@ -23,6 +23,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.FurnaceBurnEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -53,6 +55,13 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     private int armorPaddingMaxPerPiece;
     private int heartMedsHeartsRestoredHearts;
     private Set<Material> allowedArmorMaterials = Collections.emptySet();
+
+    // Custom model data
+    private static final int MODEL_TRACKING_COMPASS = 20201;
+    private static final int MODEL_ARMOR_PADDING = 20202;
+    private static final int MODEL_ENCHANTED_BRANCH = 20203;
+    private static final int MODEL_HEART_MEDS = 20204;
+    private static final int MODEL_TRAIL_MIX = 20205;
 
     // SBPC custom item keys
     private static final String KEY_TRACKING_COMPASS = "tracking_compass";
@@ -172,6 +181,7 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
                     "§7A quick snack for adventurers.",
                     "§7Restores §e2 hunger §7and §e1 saturation."
             ));
+            applyCustomModelData(meta, MODEL_TRAIL_MIX);
             meta.getPersistentDataContainer().set(trailMixKey, PersistentDataType.BYTE, (byte) 1);
             stack.setItemMeta(meta);
         }
@@ -197,6 +207,7 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
 
             meta.setDisplayName(name);
             meta.setLore(lore);
+            applyCustomModelData(meta, MODEL_TRACKING_COMPASS);
             meta.getPersistentDataContainer().set(trackingCompassKey, PersistentDataType.BYTE, (byte) 1);
             stack.setItemMeta(meta);
         }
@@ -222,6 +233,7 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
 
             meta.setDisplayName(name);
             meta.setLore(lore);
+            applyCustomModelData(meta, MODEL_ARMOR_PADDING);
             meta.getPersistentDataContainer().set(armorPaddingKey, PersistentDataType.BYTE, (byte) 1);
             stack.setItemMeta(meta);
         }
@@ -248,6 +260,7 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
 
             meta.setDisplayName(name);
             meta.setLore(lore);
+            applyCustomModelData(meta, MODEL_ENCHANTED_BRANCH);
             meta.getPersistentDataContainer().set(enchantedBranchKey, PersistentDataType.BYTE, (byte) 1);
             stack.setItemMeta(meta);
         }
@@ -273,10 +286,15 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
 
             meta.setDisplayName(name);
             meta.setLore(lore);
+            applyCustomModelData(meta, MODEL_HEART_MEDS);
             meta.getPersistentDataContainer().set(heartMedsKey, PersistentDataType.BYTE, (byte) 1);
             stack.setItemMeta(meta);
         }
         return stack;
+    }
+
+    private void applyCustomModelData(ItemMeta meta, int modelData) {
+        meta.setCustomModelData(modelData);
     }
 
 
@@ -317,6 +335,15 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         }
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         return pdc.has(trailMixKey, PersistentDataType.BYTE);
+    }
+
+    private boolean isPluginCustomItem(ItemStack stack) {
+        return isTrackingCompass(stack)
+                || isArmorPaddingItem(stack)
+                || isEnchantedBranch(stack)
+                || isHeartMeds(stack)
+                || isTrailMix(stack)
+                || isPaddedArmor(stack);
     }
 
 
@@ -548,24 +575,43 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         }
 
         // Custom items must not be used as ingredients for unintended recipes
-        boolean hasCustomIngredient = false;
-        for (ItemStack stack : inv.getMatrix()) {
-            if (isTrackingCompass(stack) ||
-                isArmorPaddingItem(stack) ||
-                isEnchantedBranch(stack) ||
-                isHeartMeds(stack)) {
-                hasCustomIngredient = true;
-                break;
-            }
-        }
+        boolean hasCustomIngredient = Arrays.stream(inv.getMatrix())
+                .anyMatch(this::isPluginCustomItem);
 
         if (hasCustomIngredient &&
             (result == null || result.getType() == Material.AIR ||
              (!isTrackingCompass(result) &&
               !isArmorPaddingItem(result) &&
               !isEnchantedBranch(result) &&
-              !isHeartMeds(result)))) {
+              !isHeartMeds(result) &&
+              !isTrailMix(result)))) {
             inv.setResult(null);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onFurnaceSmelt(FurnaceSmeltEvent event) {
+        ItemStack source = event.getSource();
+        if (isPluginCustomItem(source)) {
+            event.setCancelled(true);
+            event.setResult(new ItemStack(Material.AIR));
+            return;
+        }
+
+        ItemStack result = event.getResult();
+        if (isPluginCustomItem(result)) {
+            event.setCancelled(true);
+            event.setResult(new ItemStack(Material.AIR));
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onFurnaceBurn(FurnaceBurnEvent event) {
+        ItemStack fuel = event.getFuel();
+        if (isPluginCustomItem(fuel)) {
+            event.setCancelled(true);
+            event.setBurning(false);
+            event.setBurnTime(0);
         }
     }
 
