@@ -1,0 +1,7 @@
+name: SBPCLifestealItems
+main: me.BaddCamden.SBPCLifestealItems.SBPCLifestealItemsPlugin
+version: 1.1.0
+api-version: 1.21
+depend:
+  - SBPC
+description: "Custom unlockable items for SBPC: Tracking Compass, Armor Padding, Enchanted Branch, Heart Meds."

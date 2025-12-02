@@ -1,0 +1,95 @@
+# ==========================================================
+# SBPCLifestealItems - Configuration
+# ==========================================================
+
+# ----------------------------------------------------------
+# Numeric settings
+# ----------------------------------------------------------
+settings:
+  tracking-compass:
+    duration-seconds: 15          # How long a tracking compass lasts
+    sound-interval-seconds: 3     # How often to play the ticking sound
+
+  armor-padding:
+    units-per-item: 2             # How much padding each padding item adds
+    max-per-piece: 5              # Maximum padding per armor piece
+
+    # List of all armor pieces that are allowed to receive padding.
+    # This avoids relying on name suffixes and lets you support things like
+    # Leather Tunic (LEATHER_CHESTPLATE) and Carved Pumpkin.
+    allowed-armor:
+      - LEATHER_HELMET
+      - LEATHER_CHESTPLATE
+      - LEATHER_LEGGINGS
+      - LEATHER_BOOTS
+      - CHAINMAIL_HELMET
+      - CHAINMAIL_CHESTPLATE
+      - CHAINMAIL_LEGGINGS
+      - CHAINMAIL_BOOTS
+      - IRON_HELMET
+      - IRON_CHESTPLATE
+      - IRON_LEGGINGS
+      - IRON_BOOTS
+      - GOLDEN_HELMET
+      - GOLDEN_CHESTPLATE
+      - GOLDEN_LEGGINGS
+      - GOLDEN_BOOTS
+      - DIAMOND_HELMET
+      - DIAMOND_CHESTPLATE
+      - DIAMOND_LEGGINGS
+      - DIAMOND_BOOTS
+      - NETHERITE_HELMET
+      - NETHERITE_CHESTPLATE
+      - NETHERITE_LEGGINGS
+      - NETHERITE_BOOTS
+      - TURTLE_HELMET
+      - CARVED_PUMPKIN
+
+  enchanted-branch:
+    enabled: true                 # Provided for future toggling
+
+  heart-meds:
+    hearts-restored: 1            # How many hearts of max health Heart Meds restore
+
+# ----------------------------------------------------------
+# Messages and item display text
+# ----------------------------------------------------------
+# Color codes use '&' here and are converted to '§' at runtime.
+messages:
+  tracking-compass:
+    name: "&5Tracking Compass"
+    lore:
+      - "&7Right-click to lock onto a random player."
+      - "&7Ticks for 15 seconds, then breaks."
+    not-unlocked: "&cYou have not unlocked the Tracking Compass yet."
+    already-active: "&cYour Tracking Compass is already active."
+    no-targets: "&cNo other player to track."
+    locked-onto: "&5Tracking Compass: &dLocked onto &e{player}&d!"
+    target-left: "&cYour target left the server. The compass fizzles out."
+    shattered: "&5Tracking Compass &7has shattered."
+
+  armor-padding:
+    name: "&aArmor Padding"
+    lore:
+      - "&7Use in crafting with armor to add padding."
+      - "&7Each application: &a+2 padding&7 (max &c5&7 per piece)."
+    lore-format: "&aPadding: &e{amount}"
+
+  enchanted-branch:
+    name: "&9Enchanted Branch"
+    lore:
+      - "&7Swap this with another item in your inventory"
+      - "&7to apply a random enchantment (if unlocked)."
+    not-unlocked: "&cYou have not unlocked the Enchanted Branch yet."
+    apply-success: "&9Enchanted Branch &7applied &b{enchant}&7."
+    no-valid-enchant: "&cThe Enchanted Branch failed to find a valid enchantment for that item."
+
+  heart-meds:
+    name: "&dHeart Meds"
+    lore:
+      - "&7Consume to restore &c+1 heart&7 of max health."
+      - "&7Usable only once per player."
+    not-unlocked: "&cYou have not unlocked Heart Meds yet."
+    already-used: "&cYou have already used Heart Meds once."
+    not-missing: "&cYou are not missing any maximum health."
+    consumed: "&dYou feel your heart mend. (&c+1&d max heart)"
