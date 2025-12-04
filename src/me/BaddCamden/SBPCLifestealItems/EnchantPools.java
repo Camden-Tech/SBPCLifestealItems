@@ -71,6 +71,16 @@ public final class EnchantPools {
             result.add(Enchantment.PROJECTILE_PROTECTION);
             result.add(Enchantment.UNBREAKING);
             result.add(Enchantment.FEATHER_FALLING);
+        } else if (name.equals("TRIDENT")) {
+            result.add(Enchantment.UNBREAKING);
+            result.add(Enchantment.LOYALTY);
+        } else if (name.equals("BOW")) {
+            result.add(Enchantment.POWER);
+            result.add(Enchantment.PUNCH);
+        } else if (name.equals("CROSSBOW")) {
+            result.add(Enchantment.PIERCING);
+        } else if (name.equals("SHEARS") || name.equals("FLINT_AND_STEEL")) {
+            result.add(Enchantment.UNBREAKING);
         }
 
         if (result.isEmpty()) {
