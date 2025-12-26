@@ -6,16 +6,22 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.*;
 
 /**
- * Loads all necessary messages from config.yml during plugin enable
- * and provides colorized lookups without touching config at runtime.
+ * Loads all necessary messages from config.yml during plugin enable and provides
+ * colorized lookups without touching config at runtime.
  */
 public class Messages {
 
-    private final JavaPlugin plugin; // NEW
+    private final JavaPlugin plugin;
 
     private final Map<String, String> strings = new HashMap<>();
     private final Map<String, List<String>> lists = new HashMap<>();
 
+    /**
+     * Preloads translatable strings and lore lists from the plugin configuration
+     * so lookups avoid disk I/O during runtime.
+     *
+     * @param plugin owning plugin used for config access and logging
+     */
     public Messages(JavaPlugin plugin) {
         this.plugin = plugin;
         FileConfiguration cfg = plugin.getConfig();
@@ -51,7 +57,10 @@ public class Messages {
         loadString(cfg, "messages.heart-meds.consumed");
     }
 
-
+    /**
+     * Reads and caches a string from the configuration, logging a warning when
+     * the path is missing.
+     */
     private void loadString(FileConfiguration cfg, String path) {
         if (!cfg.isSet(path)) {
             plugin.getLogger().warning("[Messages] Missing string in config.yml at '" + path + "'");
@@ -60,6 +69,10 @@ public class Messages {
         strings.put(path, color(value));
     }
 
+    /**
+     * Reads and caches a list of strings from the configuration, logging when
+     * the structure is not present.
+     */
     private void loadList(FileConfiguration cfg, String path) {
         if (!cfg.isList(path)) {
             plugin.getLogger().warning("[Messages] Missing or non-list value in config.yml at '" + path + "'");
@@ -72,28 +85,40 @@ public class Messages {
         lists.put(path, colored);
     }
 
-
+    /**
+     * Performs simple color placeholder replacement on a raw string.
+     */
     private String color(String input) {
         if (input == null) return "";
-        return input.replace('&', '§');
+        return input.replace('&', '');
     }
 
+    /**
+     * Retrieves a cached string value, emitting a warning and visible fallback
+     * when missing.
+     */
     public String get(String path) {
         String v = strings.get(path);
         if (v == null || v.isEmpty()) {
-            // Visible fallback so items/messages are never fully blank
             plugin.getLogger().warning("[Messages] No value loaded for path '" + path + "'");
-            return "§c[" + path + "]";
+            return "c[" + path + "]";
         }
         return v;
     }
 
+    /**
+     * Retrieves a cached list of strings for lore or multi-line messages.
+     */
     public List<String> getList(String path) {
         List<String> v = lists.get(path);
         if (v == null) return Collections.emptyList();
         return v;
     }
 
+    /**
+     * Formats a cached message by replacing {key} placeholders with provided
+     * parameter values.
+     */
     public String format(String path, Map<String, String> params) {
         String msg = get(path);
         for (Map.Entry<String, String> e : params.entrySet()) {
