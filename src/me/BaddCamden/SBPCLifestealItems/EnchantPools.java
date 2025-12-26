@@ -12,9 +12,19 @@ import java.util.List;
  */
 public final class EnchantPools {
 
+    /**
+     * Utility holder class should not be instantiated.
+     */
     private EnchantPools() {
     }
 
+    /**
+     * Returns the list of enchantments that can be rolled for the given
+     * material when using an Enchanted Branch.
+     *
+     * @param mat target material being enchanted
+     * @return immutable list of allowed enchantments for the material
+     */
     public static List<Enchantment> getPool(Material mat) {
         String name = mat.name();
         List<Enchantment> result = new ArrayList<>();

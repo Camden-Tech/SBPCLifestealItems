@@ -20,11 +20,19 @@ public class PlayerUsageStore {
     private final File folder;
     private final Map<UUID, PlayerUsage> usageMap = new HashMap<>();
 
+    /**
+     * Creates a new persistent store using the plugin's data directory for
+     * reading and writing usage YAML files.
+     */
     public PlayerUsageStore(JavaPlugin plugin) {
         this.plugin = plugin;
         this.folder = new File(plugin.getDataFolder(), "players");
     }
 
+    /**
+     * Loads all usage files from disk into memory, skipping malformed entries
+     * but keeping the plugin online.
+     */
     public void loadAll() {
         usageMap.clear();
         if (!folder.exists()) {
@@ -54,6 +62,10 @@ public class PlayerUsageStore {
         }
     }
 
+    /**
+     * Persists every tracked player's usage statistics to individual YAML
+     * files inside the plugin data folder.
+     */
     public void saveAll() {
         if (!folder.exists() && !folder.mkdirs()) {
             plugin.getLogger().warning("Could not create players data folder: " + folder.getPath());
@@ -76,6 +88,10 @@ public class PlayerUsageStore {
         }
     }
 
+    /**
+     * Retrieves the usage record for a player, instantiating a new empty entry
+     * when none is currently cached.
+     */
     public PlayerUsage getOrCreate(UUID uuid) {
         PlayerUsage usage = usageMap.get(uuid);
         if (usage == null) {

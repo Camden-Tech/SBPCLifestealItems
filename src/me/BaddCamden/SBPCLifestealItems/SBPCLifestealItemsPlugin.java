@@ -43,6 +43,10 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Primary plugin entry point that wires together custom items, recipes, and
+ * event handling for the SBPC Lifesteal items pack.
+ */
 public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
 
     private Messages messages;
@@ -91,6 +95,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
 
     private final Random random = new Random();
 
+    /**
+     * Boots the plugin, ensuring SBPC is present, loading configuration, and
+     * registering recipes, listeners, and per-player data.
+     */
     @Override
     public void onEnable() {
         if (Bukkit.getPluginManager().getPlugin("SBPC") == null) {
@@ -133,6 +141,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         getLogger().info("SBPCLifestealItems enabled.");
     }
 
+    /**
+     * Shuts the plugin down by cancelling active tasks and persisting usage
+     * data to disk before Bukkit unloads the plugin.
+     */
     @Override
     public void onDisable() {
         for (BukkitTask task : activeTracking.values()) {
@@ -147,6 +159,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         getLogger().info("SBPCLifestealItems disabled.");
     }
 
+    /**
+     * Reads tunable gameplay values from {@code config.yml} and caches them
+     * for quick access during runtime.
+     */
     private void loadSettings() {
         trackingCompassDurationSeconds = getConfig().getInt("settings.tracking-compass.duration-seconds", 15);
         trackingCompassSoundIntervalSeconds = getConfig().getInt("settings.tracking-compass.sound-interval-seconds", 3);
@@ -171,6 +187,13 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     // ------------------------------------------------------------------------
     // Item factories
     // ------------------------------------------------------------------------
+    /**
+     * Builds a Trail Mix food item stack with custom lore and persistent data
+     * marker so consumption can be intercepted later.
+     *
+     * @param amount number of Trail Mix items to include in the stack
+     * @return configured {@link ItemStack} representing Trail Mix
+     */
     private ItemStack createTrailMixItem(int amount) {
         // Use DRIED_KELP as base so it uses the fast eating animation
         ItemStack stack = new ItemStack(Material.DRIED_KELP, amount);
@@ -188,6 +211,12 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         return stack;
     }
 
+    /**
+     * Creates a Tracking Compass item pre-tagged for plugin identification and
+     * decorated with messages-driven name and lore.
+     *
+     * @return the customized tracking compass
+     */
     private ItemStack createTrackingCompass() {
         ItemStack stack = new ItemStack(Material.COMPASS, 1);
         ItemMeta meta = stack.getItemMeta();
@@ -214,6 +243,13 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         return stack;
     }
 
+    /**
+     * Produces an Armor Padding consumable item stack used to add padding to
+     * armor pieces.
+     *
+     * @param amount number of padding items to create
+     * @return customized padding {@link ItemStack}
+     */
     private ItemStack createArmorPaddingItem(int amount) {
         ItemStack stack = new ItemStack(Material.RABBIT_HIDE, amount);
         ItemMeta meta = stack.getItemMeta();
@@ -241,6 +277,12 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     }
 
 
+    /**
+     * Generates an Enchanted Branch item that can be combined with other items
+     * to roll a random enchantment.
+     *
+     * @return the enchanted branch item
+     */
     private ItemStack createEnchantedBranch() {
         ItemStack stack = new ItemStack(Material.STICK, 1);
         ItemMeta meta = stack.getItemMeta();
@@ -267,6 +309,12 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         return stack;
     }
 
+    /**
+     * Crafts a Heart Meds item that grants an extra heart of maximum health
+     * when consumed by eligible players.
+     *
+     * @return the heart meds item
+     */
     private ItemStack createHeartMeds() {
         ItemStack stack = new ItemStack(Material.RABBIT_FOOT, 1);
         ItemMeta meta = stack.getItemMeta();
@@ -293,6 +341,13 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         return stack;
     }
 
+    /**
+     * Applies custom model data to an item's metadata for resource pack
+     * rendering.
+     *
+     * @param meta       metadata to update
+     * @param modelData  numeric model identifier
+     */
     private void applyCustomModelData(ItemMeta meta, int modelData) {
         meta.setCustomModelData(modelData);
     }
@@ -302,6 +357,13 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     // PDC helpers
     // ------------------------------------------------------------------------
 
+    /**
+     * Checks whether an item stack contains a specific persistent data flag.
+     *
+     * @param stack the item to check
+     * @param key   the flag key to look for
+     * @return true if the item carries the keyed flag
+     */
     private boolean hasKey(ItemStack stack, NamespacedKey key) {
         if (stack == null || stack.getType() == Material.AIR) return false;
         ItemMeta meta = stack.getItemMeta();
@@ -310,21 +372,37 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         return flag != null && flag == (byte) 1;
     }
 
+    /**
+     * Determines if the provided stack is a plugin tracking compass.
+     */
     private boolean isTrackingCompass(ItemStack stack) {
         return hasKey(stack, trackingCompassKey);
     }
 
+    /**
+     * Determines if the provided stack is an armor padding item.
+     */
     private boolean isArmorPaddingItem(ItemStack stack) {
         return hasKey(stack, armorPaddingKey);
     }
 
+    /**
+     * Determines if the provided stack is an enchanted branch item.
+     */
     private boolean isEnchantedBranch(ItemStack stack) {
         return hasKey(stack, enchantedBranchKey);
     }
 
+    /**
+     * Determines if the provided stack is a heart meds item.
+     */
     private boolean isHeartMeds(ItemStack stack) {
         return hasKey(stack, heartMedsKey);
     }
+    /**
+     * Determines if the provided stack is a Trail Mix food item created by the
+     * plugin.
+     */
     private boolean isTrailMix(ItemStack stack) {
         if (stack == null || stack.getType() != Material.DRIED_KELP) {
             return false;
@@ -337,6 +415,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         return pdc.has(trailMixKey, PersistentDataType.BYTE);
     }
 
+    /**
+     * Detects whether an item stack represents any custom item registered by
+     * this plugin, including padded armor.
+     */
     private boolean isPluginCustomItem(ItemStack stack) {
         return isTrackingCompass(stack)
                 || isArmorPaddingItem(stack)
@@ -347,10 +429,19 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     }
 
 
+    /**
+     * Checks if the provided material is considered armor for padding logic.
+     */
     private boolean isArmorMaterial(Material type) {
         return allowedArmorMaterials.contains(type);
     }
 
+    /**
+     * Checks whether an armor piece already carries padding data.
+     *
+     * @param stack armor piece to inspect
+     * @return true if the item has padding level data
+     */
     private boolean isPaddedArmor(ItemStack stack) {
         if (stack == null || stack.getType() == Material.AIR) return false;
         if (!isArmorMaterial(stack.getType())) return false;
@@ -360,6 +451,12 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         return lvl != null && lvl > 0;
     }
 
+    /**
+     * Retrieves the stored padding level on an armor piece.
+     *
+     * @param armor the item to read from
+     * @return padding level or 0 when not padded
+     */
     private int getPaddingLevel(ItemStack armor) {
         if (!isPaddedArmor(armor)) return 0;
         ItemMeta meta = armor.getItemMeta();
@@ -368,6 +465,13 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         return (lvl == null) ? 0 : lvl;
     }
 
+    /**
+     * Updates the padding level for an armor piece, clamping to configured
+     * bounds and refreshing its lore.
+     *
+     * @param armor armor item to mutate
+     * @param level desired padding amount
+     */
     private void setPaddingLevel(ItemStack armor, int level) {
         level = Math.max(0, Math.min(armorPaddingMaxPerPiece, level));
         ItemMeta meta = armor.getItemMeta();
@@ -391,6 +495,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     // Recipe registration + discovery
     // ------------------------------------------------------------------------
 
+    /**
+     * Registers all custom crafting and shapeless recipes required by the
+     * plugin's custom items.
+     */
     private void registerRecipes() {
         // Tracking Compass: compass, apple, rotten flesh x2
         ItemStack compass = createTrackingCompass();
@@ -446,6 +554,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
 
     }
 
+    /**
+     * Unlocks recipes for a player based on SBPC progression flags, allowing
+     * crafting in vanilla tables.
+     */
     private void discoverRecipesForPlayer(Player player) {
         UUID id = player.getUniqueId();
         if (SbpcAPI.isCustomUnlocked(id, KEY_TRACKING_COMPASS)) {
@@ -462,6 +574,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * When SBPC signals a custom item unlock, expose the corresponding recipe
+     * to the player within vanilla crafting.
+     */
     @EventHandler
     public void onUnlockItem(UnlockItemEvent event) {
         Player player = event.getPlayer();
@@ -481,6 +597,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
             discoverRecipesForPlayer(player);
         }
     }
+    /**
+     * Replaces vanilla Trail Mix consumption with custom hunger and saturation
+     * handling while removing the consumed item.
+     */
     @EventHandler
     public void onTrailMixConsume(PlayerItemConsumeEvent event) {
         ItemStack item = event.getItem();
@@ -532,6 +652,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
     }
 
+    /**
+     * Re-applies recipe discovery for players joining mid-session to ensure
+     * their unlocked items stay craftable.
+     */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         discoverRecipesForPlayer(event.getPlayer());
@@ -541,6 +665,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     // Crafting restrictions + Armor Padding recipe
     // ------------------------------------------------------------------------
 
+    /**
+     * Guards crafting so locked custom items cannot be created and prevents
+     * custom items from unintentionally entering other recipes.
+     */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPrepareItemCraft(PrepareItemCraftEvent event) {
         CraftingInventory inv = event.getInventory();
@@ -589,6 +717,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Blocks custom items from being smelted either as ingredients or results
+     * to avoid losing their metadata.
+     */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onFurnaceSmelt(FurnaceSmeltEvent event) {
         ItemStack source = event.getSource();
@@ -605,6 +737,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Prevents custom items from being used as furnace fuel, which would
+     * consume plugin items in unintended ways.
+     */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onFurnaceBurn(FurnaceBurnEvent event) {
         ItemStack fuel = event.getFuel();
@@ -616,8 +752,12 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     }
 
     /**
-     * Armor + exactly 1 Armor Padding item => padded armor.
-     * Uses config-defined allowed armor materials.
+     * Applies padding to an armor piece within the crafting grid when exactly
+     * one padding item and one valid armor piece are present.
+     *
+     * @param inv    crafting inventory being prepared
+     * @param player crafting player for unlock validation and tracking
+     * @return true when a padding recipe was handled
      */
     private boolean handleArmorPaddingApply(CraftingInventory inv, Player player) {
         ItemStack[] matrix = inv.getMatrix();
@@ -679,6 +819,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     // Tracking Compass
     // ------------------------------------------------------------------------
 
+    /**
+     * Handles right-clicking a tracking compass, starting a timed task that
+     * points toward a random online player if unlocked.
+     */
     @EventHandler(ignoreCancelled = true)
     public void onTrackingCompassUse(PlayerInteractEvent event) {
         Action action = event.getAction();
@@ -724,6 +868,8 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(this, new Runnable() {
             int ticks = 0;
 
+            // Periodically retarget the compass and play feedback until the
+            // duration expires or either player disconnects.
             @Override
             public void run() {
                 if (!player.isOnline()) {
@@ -751,6 +897,7 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
                 }
             }
 
+            // Cancels this repeating task and unregisters it from the map.
             private void cancelSelf() {
                 BukkitTask t = activeTracking.remove(uuid);
                 if (t != null) {
@@ -763,6 +910,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         event.setCancelled(true);
     }
 
+    /**
+     * Removes a single tracking compass from the player's inventory to
+     * represent item consumption.
+     */
     private void removeOneTrackingCompass(Player player) {
         PlayerInventory inv = player.getInventory();
         for (int i = 0; i < inv.getSize(); i++) {
@@ -783,6 +934,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     // Armor Padding damage reduction
     // ------------------------------------------------------------------------
 
+    /**
+     * Converts armor padding into temporary damage reduction, consuming stored
+     * padding units before applying health loss.
+     */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onDamageWithPadding(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
@@ -836,6 +991,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     // Enchanted Branch
     // ------------------------------------------------------------------------
 
+    /**
+     * Applies a random enchantment from the configured pool when an enchanted
+     * branch is swapped with a valid target item in an inventory slot.
+     */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -894,6 +1053,14 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Attempts to roll and apply an unlocked enchantment from the material's
+     * pool onto the given item.
+     *
+     * @param player player performing the enchantment
+     * @param target item receiving the enchantment
+     * @return true when an enchantment is successfully applied
+     */
     private boolean applyRandomEnchantFromPool(Player player, ItemStack target) {
         List<Enchantment> pool = EnchantPools.getPool(target.getType());
         if (pool.isEmpty()) {
@@ -936,6 +1103,10 @@ public class SBPCLifestealItemsPlugin extends JavaPlugin implements Listener {
     // Heart Meds
     // ------------------------------------------------------------------------
 
+    /**
+     * Consumes a heart meds item to restore missing maximum health for players
+     * who have not already used the item.
+     */
     @EventHandler(ignoreCancelled = true)
     public void onHeartMedsUse(PlayerInteractEvent event) {
         Action action = event.getAction();
